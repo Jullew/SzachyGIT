@@ -10,7 +10,6 @@ public class main {
     static boolean mat = false;
 
     static Gracz aktualnyGracz = Gracz.BIALY;
-    static String[] bicia = new String[64];
     static boolean zlyRuch = false;
     static int[][] szachownica = {
             {102, 103, 104, 105, 106, 104, 103, 102},   //BIAŁE 50 KRÓL
@@ -28,40 +27,38 @@ public class main {
         wyswietlSzachownice();
         while (true) {
             do {
-                do {
-                    if (kolejka > 1) {
-                        if (zlyRuch == true) {
-                            System.out.println("Niepoprawny ruch! Powtórz..");
-                        } else
-                        sprawdzBicie();
-                        if (sprawdzBicie() == true) {
-                            System.out.println("Nie możesz zrobić tego ruchu, masz bicie!");
-                            System.out.println("Bicia pionkami:");
-                            for (int i = 0; i < bicia.length; i++) {
-                                if (bicia[i] != null) {
-                                    System.out.println(bicia[i]);
-                                }
-                            }
-                        }
-                    }
+//                    if (kolejka > 1) {
+//                        if (zlyRuch == true) {
+//                            System.out.println("Niepoprawny ruch! Powtórz..");
+//                        } else
+//                        sprawdzBicie();
+//                        if (sprawdzBicie() == true) {
+//                            System.out.println("Nie możesz zrobić tego ruchu, masz bicie!");
+//                            System.out.println("Bicia pionkami:");
+//                            for (int i = 0; i < bicia.length; i++) {
+//                                if (bicia[i] != null) {
+//                                    System.out.println(bicia[i]);
+//                                }
+//                            }
+//                        }
+//                    }
 
 
-                    String ruch = pobierzRuch();
-                    int x1 = getY1(ruch);
-                    int y1 = getX1(ruch);
+                String ruch = pobierzRuch();
+                int x1 = getY1(ruch);
+                int y1 = getX1(ruch);
 
-                    int x2 = getY2(ruch);
-                    int y2 = getX2(ruch);
+                int x2 = getY2(ruch);
+                int y2 = getX2(ruch);
 //            mat = sprawdzMata();
            /* if(mat) {
                 System.out.println("Zwyciezył " + aktualnyGracz.name());
                 break;
             }*/
 
-                    sprawdzRuch(x1, y1, x2, y2);
-                    kolejka++;
-                } while (zlyRuch == true);
-            } while (sprawdzBicie() == true);
+                sprawdzRuch(x1, y1, x2, y2);
+
+            } while (zlyRuch == true);
             wyswietlSzachownice();
             zmienGracza();
 
@@ -78,7 +75,7 @@ public class main {
     }
 
 
-    public static void sprawdzRuch(int x1, int y1, int x2, int y2) {
+    public static boolean sprawdzRuch(int x1, int y1, int x2, int y2) {
         int pionek = sprawdzPionekX1Y1(x1, y1);
 
         int roznicaX = Math.abs(x1 - x2);
@@ -87,45 +84,57 @@ public class main {
 
         if ((aktualnyGracz == Gracz.CZARNY && pionek > 110) || (aktualnyGracz == Gracz.BIALY && pionek < 110)) {
             if (pionek != 888) { // sprawdź czy pionek jest na pozycji początkowej
-                if ((pionek < 104) || (pionek < 114 && pionek > 104)) { // sortowanie
-                    if (pionek == 101 || pionek == 111) { // PION
-                        if (x2>x1 && ((((((x1 == 1 || x1 == 6) && roznicaX < 3) && (y1 == y2)) || (x1 > 1 && roznicaX == 1)) && (szachownica[x2][y2] == 888))
-                        || sprawdzBicie() == true &&  (szachownica[x2][y2]) != 888)){
-                            szachownica[x1][y1] = szachownica[x2][y2];
+                if ((pionek < 104) || (pionek < 114 && pionek > 110)) { // sortowanie
+                    if (pionek == 101 || pionek == 111) { // PION [BIAŁY / CZARNY]
+                        if (x2 > x1 && ((((((x1 == 1 || x1 == 6) && roznicaX < 3) && (y1 == y2)) ||
+                                (x1 > 1 && x1 < 7 && x2 == x1 + 1 && y1 == y2 && roznicaX == 1 && szachownica[x2][y2] == 888)))) ||
+                                (szachownica[x2][y2] != 888 && ((x2 == x1 + 1) && (y2 == y1 + 1) || y2 == y1 - 1))) {
+
+                            szachownica[x1][y1] = 888;
                             szachownica[x2][y2] = pionek;
-                            zlyRuch = false;
+                            return false;
                         } else {
-                            zlyRuch = true;
+                            return true;
 
                         }
                     } else if (pionek == 102 || pionek == 112) { // WIEŻA
                         //if (x1 == x2 || y1 == y2) {
-                        if (x1 == x2) {
-                            szachownica[x1][y1] = 888;
-                            szachownica[x2][y2] = pionek;
-                        } else {
-                            System.out.println("Niepoprawny ruch!");
+                        if (((x1 == x2) && (y1 != y2)) || ((y1 == y2) && (x1 != x2))) {
+                            for (int i = 0; i < x1 + roznicaX; i++) {
+                                for (int j = 0; j < y1 + roznicaY; j++) {
+                                    if (szachownica[i][j] != 888) {
+                                        return true;
+                                    }
+                                }
+                            }
                         }
+                        szachownica[x1][y1] = 888;
+                        szachownica[x2][y2] = pionek;
+                        return false;
+
                     } else if (pionek == 103 || pionek == 113) { // KOŃ
                         if ((roznicaX == 2 && roznicaY == 1) || (roznicaY == 2 && roznicaX == 1)) {
                             szachownica[x1][y1] = 888;
                             szachownica[x2][y2] = pionek;
+                            return false;
                         } else {
-                            System.out.println("Niepoprawny ruch!");
+                            return true;
                         }
                     }
-                } else if (pionek == 104 || pionek == 114) { // GONIEC
-                    //
-                }
+                } else {
+                    if (pionek == 104 || pionek == 114) {
 
+                    }
+                }
             } else {
                 System.out.println("Nie ma pionka na tej pozycji!");
             }
         } else {
             System.out.println("To nie jest Twój pionek!");
         }
-
+        return false;
     }
+
 
     private static void zmienGracza() {
         if (aktualnyGracz == Gracz.BIALY)
@@ -134,28 +143,6 @@ public class main {
             aktualnyGracz = Gracz.BIALY;
     }
 
-    public static boolean sprawdzBicie() {
-        int b = 0;
-        String pozycja;
-        for (int i = 0; i < szachownica.length; i++) {
-            for (int j = 0; j < szachownica.length; j++) {
-                if (szachownica[i][j] == 101) {
-                    if (szachownica[i + 1][j + 1] != 888) {
-                        char liczX = (char) (i + 65);
-                        String literaX = Character.toString(liczX);
-                        pozycja = "" + literaX + (j + 1) + "";
-                        bicia[b] = pozycja;
-                        return true;
-                    }
-
-
-                }
-
-            }
-
-        }
-        return false;
-    }
 
     public static String pobierzRuch() {
 
